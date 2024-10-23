@@ -28,33 +28,33 @@ public class UI extends JFrame {
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String message = chatInput.getText();  // Get the input text
-                if (!message.trim().isEmpty()) {        // Only send if non-empty
+                String message = chatInput.getText();  
+                if (!message.trim().isEmpty()) {        
                     client.sendMessage(message);
-                    chatInput.setText("");   // Clear the input field
+                    chatInput.setText("");   
                 }
             }
         });
 
-        // Add components to the frame
-        add(scrollPane, BorderLayout.CENTER);          // Chat area in center
-        JPanel bottomPanel = new JPanel(new BorderLayout()); // Panel for input and button
+        
+        add(scrollPane, BorderLayout.CENTER);          
+        JPanel bottomPanel = new JPanel(new BorderLayout()); 
         bottomPanel.add(chatInput, BorderLayout.CENTER);
         bottomPanel.add(sendButton, BorderLayout.EAST);
-        add(bottomPanel, BorderLayout.SOUTH);          // Bottom panel with input and button
+        add(bottomPanel, BorderLayout.SOUTH);          
 
-        // Set the frame to be visible
+ 
         setVisible(true);
         
-        client.run();
+        client.ui = this;
+        
+        Thread t = new Thread(client);
+		t.start();
+        //client.run();
+        
     }
     
-    public static void main(String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new UI(new Client());
-            }
-        });
-	}
+    public void getMessage(String message) {
+    	chatArea.setText(chatArea.getText() + message + "\n");
+    }
 }

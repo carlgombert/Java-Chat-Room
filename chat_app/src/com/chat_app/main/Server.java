@@ -59,7 +59,7 @@ public class Server implements Runnable{
 			}
 		}
 		for(ConnectionHandler ch : connections) {
-			ch.shutDown();
+			ch.shutdown();
 		}
 	}
 	
@@ -116,7 +116,7 @@ public class Server implements Runnable{
 			out.println(message);
 		}
 		
-		public void shutDown() {
+		public void shutdown() {
 			try {
 				in.close();
 				out.close();
