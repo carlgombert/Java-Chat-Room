@@ -14,20 +14,24 @@ public class Client implements Runnable{
 	private BufferedReader in;
 	private PrintWriter out;
 	private boolean done;
-	public UI ui;
+	private UI ui;
+	private String username = "user";
+	private String hostIP = "10.131.2.139";
 	
 	
 	@Override
 	public void run() {
 		try {
-			client = new Socket("10.131.2.139", 9999);
+			client = new Socket(hostIP, 9999);
 			out = new PrintWriter(client.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+			
+			out.println(username);
 			
 			String inMessage;
 			while((inMessage = in.readLine()) != null) {
 				//System.out.println(inMessage);
-				ui.getMessage(inMessage);
+				ui.recieveMessage(inMessage);
 			}
 		} catch (IOException e) {
 			shutdown();
@@ -60,6 +64,30 @@ public class Client implements Runnable{
 	}
 	
 
+	public UI getUi() {
+		return ui;
+	}
+
+	public void setUi(UI ui) {
+		this.ui = ui;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getHostIP() {
+		return hostIP;
+	}
+
+	public void setHostIP(String hostIP) {
+		this.hostIP = hostIP;
+	}
+	
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
             @Override

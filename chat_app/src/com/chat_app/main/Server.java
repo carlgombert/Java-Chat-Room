@@ -63,6 +63,18 @@ public class Server implements Runnable{
 		}
 	}
 	
+	public boolean kick(String username) {
+		for(ConnectionHandler ch : connections) {
+			if(ch.getUsername().equals(username) && !ch.isClosed()) {
+				ch.sendMessage("You have been kicked from the server");
+				ch.shutdown();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	
 	class ConnectionHandler implements Runnable{
 
 		private Socket client;
@@ -80,7 +92,6 @@ public class Server implements Runnable{
 				out = new PrintWriter(client.getOutputStream(), true);
 				in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 				
-				out.println("Please enter a username: ");
 				username = in.readLine();
 				
 				broadcast(username + " joined chat!");
@@ -102,6 +113,21 @@ public class Server implements Runnable{
 						broadcast(username + " left the server");
 						shutdown();
 					}
+					else if(message.startsWith("/kick ")) {
+						String[] messageSplit = message.split(" ", 2);
+						if(messageSplit.length == 2) {
+							if(kick(messageSplit[1])) {
+								broadcast(username + " kicked " + messageSplit[1] + " from the server");
+							}
+							else {
+								out.println("invalid username");
+							}
+						}
+						else {
+							out.println("No username provided");
+						}
+						
+					}
 					else {
 						broadcast(username + ": " + message);
 					}
@@ -118,14 +144,23 @@ public class Server implements Runnable{
 		
 		public void shutdown() {
 			try {
-				in.close();
 				out.close();
 				if(!client.isClosed()) {
 					client.close();
 				}
+				in.close();
 			} catch (IOException e) {
+				broadcast(e.toString());
 				e.printStackTrace();
 			}
+		}
+		
+		public boolean isClosed() {
+			return client.isClosed();
+		}
+		
+		public String getUsername() {
+			return username;
 		}
 
 	}
