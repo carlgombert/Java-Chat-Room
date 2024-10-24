@@ -51,7 +51,7 @@ public class UI extends JFrame {
         gbc.gridy = 1;
         signInPanel.add(passwordLabel, gbc);
 
-        passwordField = new JPasswordField(15);
+        passwordField = new JTextField(15);
         passwordField.setFont(new Font("Arial", Font.PLAIN, 14)); 
         gbc.gridx = 1;
         gbc.gridy = 1;
