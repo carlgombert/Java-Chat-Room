@@ -1,6 +1,10 @@
-package com.chat_app.main;
+package client;
 
 import javax.swing.*;
+
+import util.Message;
+import util.User;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,11 +14,12 @@ public class UI extends JFrame {
 	private JFrame signInFrame;
 	private JTextField usernameField;
     private JTextField passwordField;
-    private JTextArea chatArea;     
+    private JPanel chatPanel;    
     private JTextField chatInput;   
     private JButton sendButton;
     private JButton quitButton;
     private Client client;
+    private JScrollPane scrollPane;
 
     public UI(Client client) {
         this.client = client;
@@ -67,7 +72,7 @@ public class UI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 
-                client.setUsername(usernameField.getText());
+                client.setUser(new User(usernameField.getText()));
                 if(passwordField.getText() != "") {
                 	client.setHostIP(passwordField.getText());
                 }
@@ -87,10 +92,10 @@ public class UI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        chatArea = new JTextArea();
-        chatArea.setEditable(false);
-        chatArea.setLineWrap(true);  
-        JScrollPane scrollPane = new JScrollPane(chatArea); 
+        chatPanel = new JPanel();
+        chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS)); 
+        chatPanel.setBackground(Color.WHITE);
+        scrollPane = new JScrollPane(chatPanel); 
 
         chatInput = new JTextField();
         sendButton = new JButton("Send");
@@ -131,9 +136,66 @@ public class UI extends JFrame {
         Thread t = new Thread(client);
 		t.start();
     }
-
     
-    public void recieveMessage(String message) {
-    	chatArea.setText(chatArea.getText() + message + "\n");
+    public void addMessage(Message message) {
+    	
+    	boolean isUser = message.getSender().equals(client.getUser());
+    	boolean isAdmin = message.getSender().getName().equals("Admin");
+    	
+    	if(!isAdmin) {
+    		JPanel messageContainer = new JPanel();
+            messageContainer.setLayout(new BoxLayout(messageContainer, BoxLayout.Y_AXIS));
+            messageContainer.setOpaque(false);
+
+            JLabel nameLabel = new JLabel(message.getSender().getName());
+            nameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            nameLabel.setForeground(Color.GRAY);
+            nameLabel.setAlignmentX(isUser ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+            
+            JLabel messageLabel = new JLabel(message.getContents());
+            messageLabel.setOpaque(true);
+            messageLabel.setBackground(isUser ? new Color(173, 216, 230) : new Color(220, 220, 220));  // Blue for user, gray for bot
+            messageLabel.setForeground(Color.BLACK);
+            messageLabel.setFont(new Font("Lucida Grande", Font.PLAIN, 15));
+            messageLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            messageLabel.setAlignmentX(isUser ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+            
+            messageContainer.add(nameLabel);
+            messageContainer.add(messageLabel);
+
+            JPanel alignmentWrapper = new JPanel();
+            alignmentWrapper.setLayout(new BoxLayout(alignmentWrapper, BoxLayout.X_AXIS));
+            alignmentWrapper.setOpaque(false);
+            if (isUser) {
+                alignmentWrapper.add(Box.createHorizontalGlue());
+                alignmentWrapper.add(messageContainer);
+            } else {
+                alignmentWrapper.add(messageContainer);
+                alignmentWrapper.add(Box.createHorizontalGlue());
+            }
+
+            chatPanel.add(alignmentWrapper);
+            chatPanel.revalidate();
+            chatPanel.repaint();
+
+            SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum()));
+    	}
+    	else {
+    		addBanner(message.getContents());
+    	}
+    }
+    
+    private void addBanner(String message) {
+        JLabel updateLabel = new JLabel(message);
+        updateLabel.setFont(new Font("Arial", Font.PLAIN, 12)); 
+        updateLabel.setForeground(Color.GRAY); 
+        updateLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        updateLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        chatPanel.add(updateLabel);
+        chatPanel.revalidate();
+        chatPanel.repaint();
+
+        SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum()));
     }
 }

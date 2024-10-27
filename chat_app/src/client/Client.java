@@ -1,4 +1,4 @@
-package com.chat_app.main;
+package client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,6 +8,9 @@ import java.net.Socket;
 
 import javax.swing.SwingUtilities;
 
+import util.Message;
+import util.User;
+
 public class Client implements Runnable{
 
 	private Socket client;
@@ -15,7 +18,7 @@ public class Client implements Runnable{
 	private PrintWriter out;
 	private boolean done;
 	private UI ui;
-	private String username = "user";
+	private User user;
 	private String hostIP = "10.131.2.139";
 	
 	
@@ -26,12 +29,11 @@ public class Client implements Runnable{
 			out = new PrintWriter(client.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			
-			out.println(username);
+			out.println(user.encode());
 			
 			String inMessage;
 			while((inMessage = in.readLine()) != null) {
-				//System.out.println(inMessage);
-				ui.recieveMessage(inMessage);
+				ui.addMessage(Message.decode(inMessage));
 			}
 		} catch (IOException e) {
 			shutdown();
@@ -55,11 +57,11 @@ public class Client implements Runnable{
 	
 	public void sendMessage(String message) {
 		if(message.equals("/leave")) {
-			out.println(message);
+			out.println(new Message(message, user).encode());
 			shutdown();
 		}
 		else {
-			out.println(message);
+			out.println(new Message(message, user).encode());
 		}
 	}
 	
@@ -72,12 +74,12 @@ public class Client implements Runnable{
 		this.ui = ui;
 	}
 
-	public String getUsername() {
-		return username;
+	public User getUser() {
+		return user;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 	public String getHostIP() {

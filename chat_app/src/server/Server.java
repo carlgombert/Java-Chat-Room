@@ -1,4 +1,4 @@
-package com.chat_app.main;
+package server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,6 +9,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import util.Message;
+import util.User;
 
 // server listens for client requests to connect and opens connection handlers
 public class Server implements Runnable{
@@ -43,7 +46,7 @@ public class Server implements Runnable{
 		
 	}
 	
-	public void broadcast(String message) {
+	public void broadcast(Message message) {
 		for(ConnectionHandler ch : connections) {
 			ch.sendMessage(message);
 		}
@@ -65,8 +68,8 @@ public class Server implements Runnable{
 	
 	public boolean kick(String username) {
 		for(ConnectionHandler ch : connections) {
-			if(ch.getUsername().equals(username) && !ch.isClosed()) {
-				ch.sendMessage("You have been kicked from the server");
+			if(ch.getUser().getName().equals(username) && !ch.isClosed()) {
+				ch.sendMessage(new Message("You have been kicked from the server", new User("Admin")));
 				ch.shutdown();
 				return true;
 			}
@@ -80,7 +83,7 @@ public class Server implements Runnable{
 		private Socket client;
 		private BufferedReader in;
 		private PrintWriter out;
-		private String username;
+		private User user;
 		
 		public ConnectionHandler(Socket client) {
 			this.client = client;
@@ -92,44 +95,44 @@ public class Server implements Runnable{
 				out = new PrintWriter(client.getOutputStream(), true);
 				in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 				
-				username = in.readLine();
+				user = User.decode(in.readLine());
 				
-				broadcast(username + " joined chat!");
+				broadcast(new Message(user.getName() + " joined chat!", new User("Admin")));
 				
 				String message;
-				while((message = in.readLine()) != null){
+				while((message = Message.decode(in.readLine()).getContents()) != null){
 					if(message.startsWith("/username ")) {
 						String[] messageSplit = message.split(" ", 2);
 						if(messageSplit.length == 2) {
-							out.println("Successfully changed username to: " + messageSplit[1]);
-							broadcast(username + " renamed themselves to " + messageSplit[1]);
-							username = messageSplit[1];
+							sendMessage(new Message("Successfully changed username to: " + messageSplit[1], new User("Admin")));
+							broadcast(new Message(user.getName() + " renamed themselves to " + messageSplit[1], new User("Admin")));
+							user.setName(messageSplit[1]);
 						}
 						else {
-							out.println("No username provided");
+							sendMessage(new Message("No username provided", new User("Admin")));
 						}
 					}
 					else if(message.startsWith("/leave")) {
-						broadcast(username + " left the server");
+						broadcast(new Message(user.getName() + " left the server", new User("Admin")));
 						shutdown();
 					}
 					else if(message.startsWith("/kick ")) {
 						String[] messageSplit = message.split(" ", 2);
 						if(messageSplit.length == 2) {
 							if(kick(messageSplit[1])) {
-								broadcast(username + " kicked " + messageSplit[1] + " from the server");
+								broadcast(new Message(user.getName() + " kicked " + messageSplit[1] + " from the server", new User("Admin") ));
 							}
 							else {
-								out.println("invalid username");
+								sendMessage(new Message("invalid username", new User("Admin")));
 							}
 						}
 						else {
-							out.println("No username provided");
+							sendMessage(new Message("No username provided", new User("Admin")));
 						}
 						
 					}
 					else {
-						broadcast(username + ": " + message);
+						broadcast(new Message(message, user));
 					}
 				}
 			} catch (IOException e) {
@@ -138,8 +141,8 @@ public class Server implements Runnable{
 			
 		}
 		
-		public void sendMessage(String message) {
-			out.println(message);
+		public void sendMessage(Message message) {
+			out.println(message.encode());
 		}
 		
 		public void shutdown() {
@@ -150,7 +153,7 @@ public class Server implements Runnable{
 				}
 				in.close();
 			} catch (IOException e) {
-				broadcast(e.toString());
+				broadcast(new Message(e.toString(), new User("Admin")));
 				e.printStackTrace();
 			}
 		}
@@ -159,8 +162,8 @@ public class Server implements Runnable{
 			return client.isClosed();
 		}
 		
-		public String getUsername() {
-			return username;
+		public User getUser() {
+			return user;
 		}
 
 	}
