@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -20,6 +21,7 @@ public class Server implements Runnable{
 	private ServerSocket server;
 	private boolean done;
 	private ExecutorService pool;
+	private LinkedList<Message> chatlog = new LinkedList<>();
 	
 	public Server() {
 		connections = new ArrayList<ConnectionHandler>();
@@ -47,6 +49,7 @@ public class Server implements Runnable{
 	}
 	
 	public void broadcast(Message message) {
+		chatlog.add(message);
 		for(ConnectionHandler ch : connections) {
 			ch.sendMessage(message);
 		}
@@ -77,6 +80,12 @@ public class Server implements Runnable{
 		return false;
 	}
 	
+	public void updateNewUser(ConnectionHandler newConnection){
+		for(Message msg : chatlog) {
+			newConnection.sendMessage(msg);
+		}
+	}
+	
 	
 	class ConnectionHandler implements Runnable{
 
@@ -96,6 +105,8 @@ public class Server implements Runnable{
 				in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 				
 				user = User.decode(in.readLine());
+				
+				updateNewUser(this);
 				
 				broadcast(new Message(user.getName() + " joined chat!", new User("Admin")));
 				
