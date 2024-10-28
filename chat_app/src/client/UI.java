@@ -154,11 +154,13 @@ public class UI extends JFrame {
             
             JLabel messageLabel = new JLabel(message.getContents());
             messageLabel.setOpaque(true);
-            messageLabel.setBackground(isUser ? new Color(173, 216, 230) : new Color(220, 220, 220));  // Blue for user, gray for bot
+            messageLabel.setBackground(isUser ? new Color(173, 216, 230) : new Color(220, 220, 220));
             messageLabel.setForeground(Color.BLACK);
             messageLabel.setFont(new Font("Lucida Grande", Font.PLAIN, 15));
             messageLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             messageLabel.setAlignmentX(isUser ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+           
+
             
             messageContainer.add(nameLabel);
             messageContainer.add(messageLabel);
