@@ -50,7 +50,7 @@ public class UI extends JFrame {
         gbc.gridy = 0;
         signInPanel.add(usernameField, gbc);
 
-        JLabel passwordLabel = new JLabel("Host IP:");
+        JLabel passwordLabel = new JLabel("Host IP (optional):");
         passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14)); 
         gbc.gridx = 0;
         gbc.gridy = 1;

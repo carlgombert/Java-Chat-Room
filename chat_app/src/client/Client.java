@@ -5,11 +5,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import javax.swing.SwingUtilities;
 
 import util.Message;
 import util.User;
+
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 public class Client implements Runnable{
 
@@ -19,7 +24,17 @@ public class Client implements Runnable{
 	private boolean done;
 	private UI ui;
 	private User user;
-	private String hostIP = "10.131.2.139";
+	private String hostIP;
+	
+	
+	public Client() {
+		try(final DatagramSocket socket = new DatagramSocket()){
+			  socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+			  hostIP = socket.getLocalAddress().getHostAddress();
+		} catch (UnknownHostException | SocketException e) {
+			//ignore
+		}
+	}
 	
 	
 	@Override
